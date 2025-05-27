@@ -287,8 +287,6 @@ int WINAPI ScyllaIatFixManualW(
     const WCHAR* iatFixFile
 )
 {
-  Scylla::initAsDll(); //Not entirely sure why - but this is required otherwise the module list is populated incorrectly.
-
   ApiReader apiReader;
   ProcessLister processLister;
   Process* processPtr = 0;
@@ -311,7 +309,7 @@ int WINAPI ScyllaIatFixManualW(
     return SCY_ERROR_PROCOPEN;
   }
 
-  ProcessAccessHelp::getProcessModules(ProcessAccessHelp::hProcess, ProcessAccessHelp::moduleList);
+  ProcessAccessHelp::getProcessModules(ProcessAccessHelp::hProcess, ProcessAccessHelp::ownModuleList);
   apiReader.readApisFromModuleList();
 
   apiReader.selectedModule = 0;
