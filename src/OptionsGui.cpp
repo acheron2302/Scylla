@@ -46,12 +46,6 @@ void OptionsGui::saveOptions() const
 	Scylla::config[CREATE_NEW_IAT_IN_SECTION].setBool(createNewIatInSection);
     Scylla::config[DONT_CREATE_NEW_SECTION].setBool(dontCreateNewSection);
     Scylla::config[APIS_ALWAYS_FROM_DISK].setBool(readApisAlwaysFromDisk);
-	Scylla::config[CUSTOM_IMAGE_BASE].setBool(useCustomImageBase);
-	if (useCustomImageBase)
-	{
-		DWORD_PTR customImageBaseVal = _wcstoui64(customImageBaseString, NULL, 16);
-		Scylla::config[CUSTOM_IMAGE_BASE].setNumeric(customImageBaseVal);
-	}
 }
 
 void OptionsGui::loadOptions()
@@ -75,7 +69,4 @@ void OptionsGui::loadOptions()
 	createNewIatInSection = Scylla::config[CREATE_NEW_IAT_IN_SECTION].getBool();
     dontCreateNewSection = Scylla::config[DONT_CREATE_NEW_SECTION].getBool();
     readApisAlwaysFromDisk = Scylla::config[APIS_ALWAYS_FROM_DISK].getBool();
-	useCustomImageBase = Scylla::config[CUSTOM_IMAGE_BASE].getBool();
-	DWORD_PTR customImageBaseVal = Scylla::config[CUSTOM_IMAGE_BASE].getNumeric();
-	swprintf_s(customImageBaseString, L"%016llX", customImageBaseVal);
 }

@@ -35,8 +35,6 @@ public:
 		DDX_CHECK(IDC_NEWIATINSECTION, createNewIatInSection)
         DDX_CHECK(IDC_CHECKNOSECTION, dontCreateNewSection)
         DDX_CHECK(IDC_CHECKAPIALWAYSDISK, readApisAlwaysFromDisk)
-		DDX_CHECK(IDC_CHECK_CUSTOM_IMAGE_BASE, useCustomImageBase)
-		DDX_TEXT(IDC_EDIT_CUSTOM_IMAGE_BASE, customImageBaseString)
 	END_DDX_MAP()
 
 	BEGIN_MSG_MAP(OptionsGui)
@@ -68,12 +66,9 @@ protected:
 	bool createNewIatInSection;
     bool dontCreateNewSection;
     bool readApisAlwaysFromDisk;
-	bool useCustomImageBase;
-	WCHAR customImageBaseString[20];
 	// Controls
 
 	CEdit EditSectionName;
-	CEdit EditCustomImageBase;
 
 	// Message handlers
 

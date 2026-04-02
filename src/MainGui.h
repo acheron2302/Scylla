@@ -41,6 +41,7 @@ public:
 		DDX_CONTROL(IDC_EDIT_OEPADDRESS, EditOEPAddress)
 		DDX_CONTROL(IDC_EDIT_IATADDRESS, EditIATAddress)
 		DDX_CONTROL(IDC_EDIT_IATSIZE, EditIATSize)
+		DDX_CONTROL(IDC_EDIT_IMAGEBASE, EditImageBase)
 	END_DDX_MAP()
 
 	// Our message map
@@ -68,6 +69,7 @@ public:
 		COMMAND_ID_HANDLER_EX(IDC_BTN_PEREBUILD, OnPERebuild)
 		COMMAND_ID_HANDLER_EX(IDC_BTN_IATAUTOSEARCH, OnIATAutoSearch)
 		COMMAND_ID_HANDLER_EX(IDC_BTN_GETIMPORTS, OnGetImports)
+		COMMAND_ID_HANDLER_EX(IDC_BTN_AUTOIMAGEBASE, OnAutoImageBase)
 		COMMAND_ID_HANDLER_EX(IDC_BTN_INVALIDIMPORTS, OnInvalidImports)
 		COMMAND_ID_HANDLER_EX(IDC_BTN_SUSPECTIMPORTS, OnSuspectImports)
 		COMMAND_ID_HANDLER_EX(IDC_BTN_CLEARIMPORTS, OnClearImports)
@@ -177,6 +179,7 @@ protected:
 	CHexEdit<DWORD_PTR> EditOEPAddress;
 	CHexEdit<DWORD_PTR> EditIATAddress;
 	CHexEdit<DWORD> EditIATSize;
+	CHexEdit<DWORD_PTR> EditImageBase;
 	CListBox ListLog;
 	CStatusBarCtrl StatusBar;
 
@@ -242,6 +245,7 @@ protected:
 
 	void OnIATAutoSearch(UINT uNotifyCode, int nID, CWindow wndCtl);
 	void OnGetImports(UINT uNotifyCode, int nID, CWindow wndCtl);
+	void OnAutoImageBase(UINT uNotifyCode, int nID, CWindow wndCtl);
 	void OnInvalidImports(UINT uNotifyCode, int nID, CWindow wndCtl);
 	void OnSuspectImports(UINT uNotifyCode, int nID, CWindow wndCtl);
 	void OnClearImports(UINT uNotifyCode, int nID, CWindow wndCtl);

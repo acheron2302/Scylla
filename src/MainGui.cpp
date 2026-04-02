@@ -106,6 +106,7 @@ void MainGui::InitDllStartWithPreSelect( PGUI_DLL_PARAMETER guiParam )
 				DWORD modEntryPoint = ProcessAccessHelp::getEntryPointFromFile(ProcessAccessHelp::selectedModule->fullPath);
 
 				EditOEPAddress.SetValue(modEntryPoint + ProcessAccessHelp::targetImageBase);
+				EditImageBase.SetValue(ProcessAccessHelp::targetImageBase);
 
 				Scylla::windowLog.log(L"->>> Module %s selected.", ProcessAccessHelp::selectedModule->getFilename());
 				Scylla::windowLog.log(L"Imagebase: " PRINTF_DWORD_PTR_FULL L" Size: %08X EntryPoint: %08X", ProcessAccessHelp::selectedModule->modBaseAddr, ProcessAccessHelp::selectedModule->modBaseSize, modEntryPoint);
@@ -323,6 +324,42 @@ void MainGui::OnIATAutoSearch(UINT uNotifyCode, int nID, CWindow wndCtl)
 void MainGui::OnGetImports(UINT uNotifyCode, int nID, CWindow wndCtl)
 {
 	getImportsActionHandler();
+}
+
+void MainGui::OnAutoImageBase(UINT uNotifyCode, int nID, CWindow wndCtl)
+{
+	if(!selectedProcess)
+		return;
+
+	WCHAR filePath[MAX_PATH];
+	if(ProcessAccessHelp::selectedModule)
+	{
+		wcscpy_s(filePath, ProcessAccessHelp::selectedModule->fullPath);
+	}
+	else
+	{
+		wcscpy_s(filePath, selectedProcess->fullPath);
+	}
+
+	PeParser peFile(filePath, true);
+	if(peFile.isValidPeFile())
+	{
+		DWORD_PTR imageBase = 0;
+		if(peFile.isPE32())
+		{
+			imageBase = peFile.getCurrentNtHeader()->OptionalHeader.ImageBase;
+		}
+		else
+		{
+			imageBase = peFile.getCurrentNtHeader()->OptionalHeader.ImageBase;
+		}
+		EditImageBase.SetValue(imageBase);
+		Scylla::windowLog.log(L"Auto ImageBase: " PRINTF_DWORD_PTR_FULL, imageBase);
+	}
+	else
+	{
+		Scylla::windowLog.log(L"Error: Cannot read PE file for ImageBase");
+	}
 }
 
 void MainGui::OnInvalidImports(UINT uNotifyCode, int nID, CWindow wndCtl)
@@ -634,6 +671,7 @@ void MainGui::processSelectedActionHandler(int index)
 	process.entryPoint = ProcessAccessHelp::getEntryPointFromFile(process.fullPath);
 
 	EditOEPAddress.SetValue(process.entryPoint + process.imageBase);
+	EditImageBase.SetValue(process.imageBase);
 
 	selectedProcess = &process;
 	enableDialogControls(TRUE);
@@ -1404,9 +1442,10 @@ void MainGui::dumpFixActionHandler()
 
 		ImportRebuilder importRebuild(selectedFilePath);
 
-		if (Scylla::config[CUSTOM_IMAGE_BASE].isTrue())
+		DWORD_PTR customImageBase = EditImageBase.GetValue();
+		if (customImageBase != 0)
 		{
-			importRebuild.setCustomImageBase(Scylla::config[CUSTOM_IMAGE_BASE].getNumeric());
+			importRebuild.setCustomImageBase(customImageBase);
 		}
 
 		if (Scylla::config[IAT_FIX_AND_OEP_FIX].isTrue())
