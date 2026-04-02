@@ -8,7 +8,7 @@ project(Scylla
 )
 
 option(SCYLLA_DOC "Enable documentation build" OFF)
-option(SCYLLA_PYTHON "Enable Python bindings build" ON)
+option(SCYLLA_PYTHON "Enable Python bindings build" OFF)
 
 add_compile_definitions("UNICODE" "_UNICODE" "_SILENCE_STDEXT_HASH_DEPRECATION_WARNINGS")
 # Static linkage with MSVC's runtime
@@ -19,7 +19,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_subdirectory("src")
 add_subdirectory("thirdparty")
-add_subdirectory("bindings")
+if (SCYLLA_PYTHON)
+  add_subdirectory("bindings")
+endif()
 
 if(SCYLLA_DOC)
   add_subdirectory("doc")

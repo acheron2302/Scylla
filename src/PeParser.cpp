@@ -1157,6 +1157,20 @@ void PeParser::setEntryPointRva(DWORD entryPoint)
 	}
 }
 
+void PeParser::setImageBase(DWORD_PTR newImageBase)
+{
+	moduleBaseAddress = newImageBase;
+
+	if (isPE32())
+	{
+		pNTHeader32->OptionalHeader.ImageBase = (DWORD)newImageBase;
+	}
+	else if (isPE64())
+	{
+		pNTHeader64->OptionalHeader.ImageBase = newImageBase;
+	}
+}
+
 bool PeParser::getFileOverlay()
 {
 	DWORD numberOfBytesRead;

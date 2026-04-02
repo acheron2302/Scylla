@@ -61,6 +61,7 @@ public:
 
 	void setEntryPointVa(DWORD_PTR entryPoint);
 	void setEntryPointRva(DWORD entryPoint);
+	void setImageBase(DWORD_PTR newImageBase);
 
 	static bool updatePeHeaderChecksum(const WCHAR * targetFile, DWORD fileSize);
 	BYTE * getSectionMemoryByIndex(int index);

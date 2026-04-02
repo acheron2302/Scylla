@@ -1404,6 +1404,11 @@ void MainGui::dumpFixActionHandler()
 
 		ImportRebuilder importRebuild(selectedFilePath);
 
+		if (Scylla::config[CUSTOM_IMAGE_BASE].isTrue())
+		{
+			importRebuild.setCustomImageBase(Scylla::config[CUSTOM_IMAGE_BASE].getNumeric());
+		}
+
 		if (Scylla::config[IAT_FIX_AND_OEP_FIX].isTrue())
 		{
 			importRebuild.setEntryPointRva((DWORD)(entrypoint - modBase));

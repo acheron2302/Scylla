@@ -2,13 +2,14 @@
 
 #include <map>
 #include "PeParser.h"
+#include "PeRebuild.h"
 #include "Thunks.h"
 #include "IATReferenceScan.h"
 
 
 class ImportRebuilder : public PeParser {
 public:
-	ImportRebuilder(const WCHAR * file) : PeParser(file, true)
+	ImportRebuilder(const WCHAR * file) : PeParser(file, true), peRebuild()
 	{
 		pImportDescriptor = 0;
 		pThunkData = 0;
@@ -23,14 +24,20 @@ public:
 		newIatInSection = false;
 		BuildDirectImportsJumpTable = false;
 		sizeOfJumpTable = 0;
+		useCustomImageBase = false;
+		customImageBase = 0;
 	}
 
 	bool rebuildImportTable(const WCHAR * newFilePath, std::map<DWORD_PTR, ImportModuleThunk> & moduleList);
 	void enableOFTSupport();
 	void enableNewIatInSection(DWORD_PTR iatAddress, DWORD iatSize);
+	void setCustomImageBase(DWORD_PTR newImageBase);
 
 	IATReferenceScan * iatReferenceScan;
 	bool BuildDirectImportsJumpTable;
+	bool useCustomImageBase;
+	DWORD_PTR customImageBase;
+	PeRebuild peRebuild;
 private:
 	PIMAGE_IMPORT_DESCRIPTOR pImportDescriptor;
 	PIMAGE_THUNK_DATA pThunkData;

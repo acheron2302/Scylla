@@ -26,6 +26,7 @@ ConfigurationHolder::ConfigurationHolder(const WCHAR* fileName)
     (config[CREATE_NEW_IAT_IN_SECTION]	=   Configuration(L"CREATE_NEW_IAT_IN_SECTION",	 Configuration::Boolean)).setFalse();
     (config[DONT_CREATE_NEW_SECTION] 	=   Configuration(L"DONT_CREATE_NEW_SECTION",	 Configuration::Boolean)).setFalse();
     (config[APIS_ALWAYS_FROM_DISK]	    =   Configuration(L"APIS_ALWAYS_FROM_DISK",	     Configuration::Boolean)).setFalse();
+    (config[CUSTOM_IMAGE_BASE]          =   Configuration(L"CUSTOM_IMAGE_BASE",          Configuration::Hexadecimal)).setNumeric(0);
 	buildConfigFilePath(fileName);
 }
 

@@ -15,6 +15,12 @@ New Scylla section contains:
 
 */
 
+void ImportRebuilder::setCustomImageBase(DWORD_PTR newImageBase)
+{
+	useCustomImageBase = true;
+	customImageBase = newImageBase;
+}
+
 bool ImportRebuilder::rebuildImportTable(const WCHAR * newFilePath, std::map<DWORD_PTR, ImportModuleThunk> & moduleList)
 {
 	bool retValue = false;
@@ -26,6 +32,17 @@ bool ImportRebuilder::rebuildImportTable(const WCHAR * newFilePath, std::map<DWO
 	{
 		if (readPeSectionsFromFile())
 		{
+			if (useCustomImageBase)
+			{
+				ReBaseErr err = peRebuild.reBasePEImage(fileMemory, customImageBase);
+				if (err != RB_OK)
+				{
+					Scylla::windowLog.log(L"Rebase failed with error %d", err);
+					return false;
+				}
+				setImageBase(customImageBase);
+			}
+
 			setDefaultFileAlignment();
 
 			retValue = buildNewImportTable(copyModule);
