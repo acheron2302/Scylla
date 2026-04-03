@@ -1440,17 +1440,32 @@ void MainGui::dumpFixActionHandler()
 			wcscat_s(newFilePath, extension);
 		}
 
-		ImportRebuilder importRebuild(selectedFilePath);
-
 		DWORD_PTR customImageBase = EditImageBase.GetValue();
-		if (customImageBase != 0)
+		DWORD_PTR addressIAT = EditIATAddress.GetValue();
+		DWORD sizeIAT = EditIATSize.GetValue();
+
+		PeParser peFileForSize(selectedFilePath, true);
+		DWORD sizeOfImage = 0;
+		if (peFileForSize.isValidPeFile())
 		{
-			importRebuild.setCustomImageBase(customImageBase);
+			sizeOfImage = peFileForSize.getCurrentNtHeader()->OptionalHeader.SizeOfImage;
 		}
+
+		apiReader.targetImageBase = customImageBase;
+		apiReader.targetSizeOfImage = sizeOfImage;
+		ProcessAccessHelp::targetImageBase = customImageBase;
+		ProcessAccessHelp::targetSizeOfImage = sizeOfImage;
+
+		importsHandling.moduleList.clear();
+		apiReader.readApisFromModuleList();
+		apiReader.readAndParseIAT(addressIAT, sizeIAT, importsHandling.moduleList);
+		importsHandling.scanAndFixModuleList();
+
+		ImportRebuilder importRebuild(selectedFilePath);
 
 		if (Scylla::config[IAT_FIX_AND_OEP_FIX].isTrue())
 		{
-			importRebuild.setEntryPointRva((DWORD)(entrypoint - modBase));
+			importRebuild.setEntryPointRva((DWORD)(entrypoint - customImageBase));
 		}
 
 		if (Scylla::config[OriginalFirstThunk_SUPPORT].isTrue())
@@ -1470,9 +1485,6 @@ void MainGui::dumpFixActionHandler()
 		if (Scylla::config[CREATE_NEW_IAT_IN_SECTION].isTrue())
 		{
 			importRebuild.iatReferenceScan = &iatReferenceScan;
-
-			DWORD_PTR addressIAT = EditIATAddress.GetValue();
-			DWORD sizeIAT = EditIATSize.GetValue();
 			importRebuild.enableNewIatInSection(addressIAT, sizeIAT);
 		}
 

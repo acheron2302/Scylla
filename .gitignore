@@ -28,3 +28,7 @@ _generate/
 *.py[cod]
 *.egg-info
 *env*
+
+build32/
+
+.kilo/plans/
