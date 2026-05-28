@@ -6,21 +6,23 @@ on:
   push:
     branches:
       - master
+    tags:
+      - "v*"
   release:
     types: [published]
 
 permissions:
+  actions: read
   contents: write
-  actions: write
 
 jobs:
   build:
-    name: Build for ${{ matrix.architecture }} (${{ matrix.build_type }})
+    name: Build for ${{ matrix.architecture }}
     strategy:
       fail-fast: false
       matrix:
         architecture: [x64, Win32]
-        build_type: [Release, Debug]
+        build_type: [Release]
     runs-on: windows-latest
 
     steps:
@@ -36,31 +38,50 @@ jobs:
         shell: bash
         run: cmake --build build --config "${{ matrix.build_type }}"
 
-      - name: Upload Build Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: scylla_${{ matrix.architecture }}_${{ matrix.build_type }}
-          path: |
-            .\build\src\${{ matrix.build_type }}\Scylla.dll
-            .\build\src\${{ matrix.build_type }}\ScyllaExe.exe
-          retention-days: 3
-
-      - name: Package release binaries
-        if: github.event_name == 'release' && github.event.action == 'published' && matrix.build_type == 'Release'
+      - name: Prepare artifacts
         shell: pwsh
         run: |
-          $dist = "dist/scylla-${{ matrix.architecture }}"
-          New-Item -ItemType Directory -Force -Path $dist
-          Copy-Item "build/src/${{ matrix.build_type }}/Scylla.dll" $dist
-          Copy-Item "build/src/${{ matrix.build_type }}/ScyllaExe.exe" $dist
-          Compress-Archive -Path "$dist/*" -DestinationPath "dist/Scylla-${{ matrix.architecture }}-${{ github.event.release.tag_name }}.zip" -Force
+          New-Item -ItemType Directory -Force -Path artifacts
+          Copy-Item "build/src/${{ matrix.build_type }}/Scylla.dll" artifacts/
+          Copy-Item "build/src/${{ matrix.build_type }}/ScyllaExe.exe" artifacts/
 
-      - name: Upload release asset
-        if: github.event_name == 'release' && github.event.action == 'published' && matrix.build_type == 'Release'
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Scylla-${{ matrix.architecture }}
+          path: artifacts/*
+          if-no-files-found: error
+
+  release:
+    name: Publish release artifacts
+    needs: build
+    runs-on: ubuntu-latest
+    if: ${{ !cancelled() && (github.event_name == 'release' || startsWith(github.ref, 'refs/tags/')) }}
+
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          path: downloaded-artifacts
+
+      - name: Package release assets
         shell: bash
         run: |
-          gh release upload "${{ github.event.release.tag_name }}" \
-            "dist/Scylla-${{ matrix.architecture }}-${{ github.event.release.tag_name }}.zip" \
-            --clobber
+          test -d downloaded-artifacts || { echo "No artifacts were downloaded"; exit 1; }
+          mkdir -p release-assets
+          for artifact_dir in downloaded-artifacts/*; do
+            test -d "$artifact_dir" || continue
+            artifact_name="$(basename "$artifact_dir")"
+            (cd "$artifact_dir" && zip -r "../../release-assets/${artifact_name}.zip" .)
+          done
+          test -n "$(find release-assets -type f -name '*.zip' -print -quit)" || { echo "No release assets were packaged"; exit 1; }
+          ls -la release-assets
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          files: release-assets/*.zip
+          fail_on_unmatched_files: true
+          generate_release_notes: true
