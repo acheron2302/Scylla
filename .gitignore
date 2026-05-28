@@ -32,3 +32,5 @@ _generate/
 build32/
 
 .kilo/plans/
+
+.kilo/

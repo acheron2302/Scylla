@@ -6,6 +6,11 @@ on:
   push:
     branches:
       - master
+  release:
+    types: [published]
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -18,7 +23,7 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
 
@@ -38,3 +43,23 @@ jobs:
             .\build\src\${{ matrix.build_type }}\Scylla.dll
             .\build\src\${{ matrix.build_type }}\ScyllaExe.exe
           retention-days: 3
+
+      - name: Package release binaries
+        if: github.event_name == 'release' && github.event.action == 'published' && matrix.build_type == 'Release'
+        shell: pwsh
+        run: |
+          $dist = "dist/scylla-${{ matrix.architecture }}"
+          New-Item -ItemType Directory -Force -Path $dist
+          Copy-Item "build/src/${{ matrix.build_type }}/Scylla.dll" $dist
+          Copy-Item "build/src/${{ matrix.build_type }}/ScyllaExe.exe" $dist
+          Compress-Archive -Path "$dist/*" -DestinationPath "dist/Scylla-${{ matrix.architecture }}-${{ github.event.release.tag_name }}.zip" -Force
+
+      - name: Upload release asset
+        if: github.event_name == 'release' && github.event.action == 'published' && matrix.build_type == 'Release'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          gh release upload "${{ github.event.release.tag_name }}" \
+            "dist/Scylla-${{ matrix.architecture }}-${{ github.event.release.tag_name }}.zip" \
+            --clobber
